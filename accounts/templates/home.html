@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Assistant Diagnostic Automobile</title>
+    <style>
+        /* === Layout général === */
+        body {
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+        .container {
+            background-color: rgba(0,0,0,0.7);
+            padding: 28px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 760px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        h1 { text-align: center; color: #00ffe0; margin-bottom: 18px; }
+
+        form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+        input[type="text"] { padding: 10px; border-radius: 8px; border: none; }
+        label { font-size: 14px; }
+        button {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            background: #00ffe0;
+            color: #000;
+            font-weight: 700;
+            cursor: pointer;
+            width: fit-content;
+        }
+
+        /* === Résultat === */
+        .result {
+            background: rgba(255,255,255,0.06);
+            padding: 18px;
+            border-radius: 12px;
+            margin-top: 12px;
+        }
+        .meta { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+        .pill {
+            background: rgba(255,255,255,0.04);
+            padding:6px 10px; border-radius:999px; font-size:13px;
+            border:1px solid rgba(255,255,255,0.03);
+        }
+        .diagnosis { font-weight:700; font-size:18px; margin-bottom:6px; color:#ffefc2; }
+
+        /* === Bulle IA === */
+        .ai-bubble {
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            border: 1px solid rgba(0,0,0,0.25);
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-top: 12px;
+            line-height:1.5;
+            color: #e6f7f1;
+        }
+        .ai-bubble p {
+            margin: 0 0 12px 0;
+            text-align: justify;
+            white-space: pre-wrap;
+        }
+
+        .ai-controls { text-align:right; margin-top:8px; }
+        .small-btn {
+            background: rgba(255,255,255,0.03);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.04);
+            padding:6px 8px;
+            border-radius:8px;
+            cursor: pointer;
+            font-size:13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Assistant Diagnostic Automobile</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+            <label><input type="checkbox" name="symptoms" value="fumée noire"> Fumée noire</label>
+            <label><input type="checkbox" name="symptoms" value="consommation élevée"> Consommation élevée</label>
+            <label><input type="checkbox" name="symptoms" value="moteur chauffe"> Moteur chauffe</label>
+            <label><input type="checkbox" name="symptoms" value="fuite liquide"> Fuite liquide</label>
+            <label><input type="checkbox" name="symptoms" value="démarrage difficile"> Démarrage difficile</label>
+            <label><input type="checkbox" name="symptoms" value="batterie faible"> Batterie faible</label>
+
+            <input type="text" name="otherSymptoms" placeholder="Autres symptômes (optionnel)">
+            <button type="submit">Diagnostiquer</button>
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <div class="diagnosis">Diagnostic: {{ result.diagnosis }}</div>
+
+            <div class="meta">
+                <div class="pill">Gravité: <strong>{{ result.severity }}</strong></div>
+                <div class="pill">Coût estimatif: <strong>{{ result.cost }}</strong></div>
+            </div>
+
+            <div id="raw-explanation" data-raw="{{ result.explanation|escapejs }}" style="display:none;"></div>
+
+            <div class="ai-bubble">
+                <div style="opacity:0.6; font-size:13px; margin-bottom:8px;">
+                    Réponse IA — reformattée
+                </div>
+                <div id="ai-content"></div>
+
+                <div class="ai-controls">
+                    <button id="copy-btn" class="small-btn">Copier</button>
+                    <button id="toggle-btn" class="small-btn">Réduire</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const rawNode = document.getElementById("raw-explanation");
+    if (!rawNode) return;
+
+    // --- Décode les séquences \uXXXX avant tout ---
+    function decodeUnicode(str) {
+        return str.replace(/\\u([\dA-F]{4})/gi, (match, grp) =>
+            String.fromCharCode(parseInt(grp, 16))
+        );
+    }
+
+    let raw = decodeUnicode(rawNode.dataset.raw || "");
+
+    const aiContent = document.getElementById("ai-content");
+    const copyBtn = document.getElementById("copy-btn");
+    const toggleBtn = document.getElementById("toggle-btn");
+
+    // Découpe en paragraphes
+    const paragraphs = raw.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+    aiContent.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join("");
+
+    // Copie
+    copyBtn.onclick = () => {
+        navigator.clipboard.writeText(raw);
+        copyBtn.textContent = "Copié ✓";
+        setTimeout(() => copyBtn.textContent = "Copier", 1500);
+    };
+
+    // Réduire / Afficher
+    let collapsed = false;
+    toggleBtn.onclick = () => {
+        collapsed = !collapsed;
+        const ps = aiContent.querySelectorAll("p");
+        ps.forEach((p,i)=> p.style.display = collapsed && i > 0 ? "none" : "block");
+        toggleBtn.textContent = collapsed ? "Afficher tout" : "Réduire";
+    };
+
+    // Auto-réduction si beaucoup de texte
+    if (paragraphs.length > 2) toggleBtn.click();
+});
+</script>
+</body>
+</html>
