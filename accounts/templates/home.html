@@ -1,99 +1,214 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Assistant Diagnostic Automobile</title>
-    <style>
-        /* === Layout général === */
-        body {
-            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            padding: 30px;
-        }
-        .container {
-            background-color: rgba(0,0,0,0.7);
-            padding: 28px;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 760px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-        }
-        h1 { text-align: center; color: #00ffe0; margin-bottom: 18px; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Assistant Diagnostic Automobile</title>
+<style>
+    /* === Reset / Base === */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: "Segoe UI", sans-serif;
+        background: #e9f5ec;
+        color: #0a8c4a;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        padding: 30px 15px;
+    }
 
-        form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
-        input[type="text"] { padding: 10px; border-radius: 8px; border: none; }
-        label { font-size: 14px; }
-        button {
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: none;
-            background: #00ffe0;
-            color: #000;
-            font-weight: 700;
-            cursor: pointer;
-            width: fit-content;
-        }
+    /* === Container === */
+    .container {
+        background: #ffffff;
+        width: 100%;
+        max-width: 600px;
+        border-radius: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        padding: 30px 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
 
-        /* === Résultat === */
-        .result {
-            background: rgba(255,255,255,0.06);
-            padding: 18px;
-            border-radius: 12px;
-            margin-top: 12px;
-        }
-        .meta { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
-        .pill {
-            background: rgba(255,255,255,0.04);
-            padding:6px 10px; border-radius:999px; font-size:13px;
-            border:1px solid rgba(255,255,255,0.03);
-        }
-        .diagnosis { font-weight:700; font-size:18px; margin-bottom:6px; color:#ffefc2; }
+    h1 {
+        text-align: center;
+        color: #0a8c4a;
+        font-size: 2rem;
+        font-weight: 700;
+    }
 
-        /* === Bulle IA === */
-        .ai-bubble {
-            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-            border: 1px solid rgba(0,0,0,0.25);
-            padding: 14px 16px;
-            border-radius: 12px;
-            margin-top: 12px;
-            line-height:1.5;
-            color: #e6f7f1;
-        }
-        .ai-bubble p {
-            margin: 0 0 12px 0;
-            text-align: justify;
-            white-space: pre-wrap;
-        }
+    /* === Form === */
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
 
-        .ai-controls { text-align:right; margin-top:8px; }
-        .small-btn {
-            background: rgba(255,255,255,0.03);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.04);
-            padding:6px 8px;
-            border-radius:8px;
-            cursor: pointer;
-            font-size:13px;
-        }
-    </style>
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+    }
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+        cursor: pointer;
+        background: #f0fff5;
+        padding: 10px 12px;
+        border-radius: 12px;
+        transition: background 0.2s;
+    }
+
+    label:hover { background: #e0f9e8; }
+
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #1dbf73;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 12px 15px;
+        border-radius: 14px;
+        border: 2px solid #d6eae0;
+        font-size: 1rem;
+    }
+
+    input[type="text"]:focus {
+        border-color: #1dbf73;
+        outline: none;
+    }
+
+    button[type="submit"] {
+        background: #1dbf73;
+        color: #fff;
+        padding: 14px;
+        border-radius: 16px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    button[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(29,191,115,0.4);
+    }
+
+    /* === Resultats === */
+    .result {
+        background: #f0fff5;
+        border-left: 5px solid #1dbf73;
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .diagnosis {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #0a6b34;
+    }
+
+    .meta {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .pill {
+        background: #e0f9e8;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0a8c4a;
+    }
+
+    /* === Bulle IA === */
+    .ai-bubble {
+        background: #e6f7f1;
+        padding: 14px 16px;
+        border-radius: 16px;
+        color: #064d27;
+        line-height: 1.5;
+        position: relative;
+    }
+
+    .ai-bubble::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        border-width: 0 10px 10px 10px;
+        border-style: solid;
+        border-color: transparent transparent #e6f7f1 transparent;
+    }
+
+    .ai-controls {
+        text-align: right;
+        margin-top: 8px;
+    }
+
+    .small-btn {
+        background: #1dbf73;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        margin-left: 5px;
+        transition: background 0.2s;
+    }
+
+    .small-btn:hover { background: #16a85c; }
+
+    /* === Déconnexion === */
+    .logout-btn {
+        background: #ff4d4d;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+        align-self: flex-end;
+        transition: background 0.2s;
+    }
+
+    .logout-btn:hover { background: #e03b3b; }
+
+    @media(max-width:480px){
+        .checkbox-group { grid-template-columns: 1fr; }
+    }
+
+</style>
 </head>
 <body>
     <div class="container">
-        
-        <h1>Assistant Diagnostic Automobile</h1>
-
+        <h1>ADA  <i>(Assistant Diagnostic Automobile)</i>
+</h1>
+       
         <form method="POST">
             {% csrf_token %}
-            <label><input type="checkbox" name="symptoms" value="fumée noire"> Fumée noire</label>
-            <label><input type="checkbox" name="symptoms" value="consommation élevée"> Consommation élevée</label>
-            <label><input type="checkbox" name="symptoms" value="moteur chauffe"> Moteur chauffe</label>
-            <label><input type="checkbox" name="symptoms" value="fuite liquide"> Fuite liquide</label>
-            <label><input type="checkbox" name="symptoms" value="démarrage difficile"> Démarrage difficile</label>
-            <label><input type="checkbox" name="symptoms" value="batterie faible"> Batterie faible</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="symptoms" value="fumée noire"> Fumée noire</label>
+                <label><input type="checkbox" name="symptoms" value="consommation élevée"> Consommation élevée</label>
+                <label><input type="checkbox" name="symptoms" value="moteur chauffe"> Moteur chauffe</label>
+                <label><input type="checkbox" name="symptoms" value="fuite liquide"> Fuite liquide</label>
+                <label><input type="checkbox" name="symptoms" value="démarrage difficile"> Démarrage difficile</label>
+                <label><input type="checkbox" name="symptoms" value="batterie faible"> Batterie faible</label>
+            </div>
 
             <input type="text" name="otherSymptoms" placeholder="Autres symptômes (optionnel)">
             <button type="submit">Diagnostiquer</button>
@@ -102,7 +217,6 @@
         {% if result %}
         <div class="result">
             <div class="diagnosis">Diagnostic: {{ result.diagnosis }}</div>
-
             <div class="meta">
                 <div class="pill">Gravité: <strong>{{ result.severity }}</strong></div>
                 <div class="pill">Coût estimatif: <strong>{{ result.cost }}</strong></div>
@@ -111,36 +225,25 @@
             <div id="raw-explanation" data-raw="{{ result.explanation|escapejs }}" style="display:none;"></div>
 
             <div class="ai-bubble">
-                <div style="opacity:0.6; font-size:13px; margin-bottom:8px;">
-                    Réponse IA — reformattée
-                </div>
                 <div id="ai-content"></div>
-
                 <div class="ai-controls">
-                    <button id="copy-btn" class="small-btn">Copier</button>
-                    <button id="toggle-btn" class="small-btn">Réduire</button>
+                  
                 </div>
             </div>
         </div>
         {% endif %}
-    </div>
-    <div style="text-align:right; margin-bottom:15px;">
-        <form action="{% url 'logout' %}" method="post" style="text-align:right; margin-bottom:15px;">
+
+        <form action="{% url 'logout' %}" method="post">
             {% csrf_token %}
-            <button type="submit"
-                style="background:#ff4d4d; padding:8px 12px; color:white;
-                       border-radius:6px; border:none; font-weight:bold; cursor:pointer;">
-                Déconnexion
-            </button>
+            <button type="submit" class="logout-btn">Déconnexion</button>
         </form>
-        
+    </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const rawNode = document.getElementById("raw-explanation");
     if (!rawNode) return;
 
-    // --- Décode les séquences \uXXXX avant tout ---
     function decodeUnicode(str) {
         return str.replace(/\\u([\dA-F]{4})/gi, (match, grp) =>
             String.fromCharCode(parseInt(grp, 16))
@@ -148,23 +251,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let raw = decodeUnicode(rawNode.dataset.raw || "");
-
     const aiContent = document.getElementById("ai-content");
     const copyBtn = document.getElementById("copy-btn");
     const toggleBtn = document.getElementById("toggle-btn");
 
-    // Découpe en paragraphes
     const paragraphs = raw.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
     aiContent.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join("");
 
-    // Copie
     copyBtn.onclick = () => {
         navigator.clipboard.writeText(raw);
         copyBtn.textContent = "Copié ✓";
         setTimeout(() => copyBtn.textContent = "Copier", 1500);
     };
 
-    // Réduire / Afficher
     let collapsed = false;
     toggleBtn.onclick = () => {
         collapsed = !collapsed;
@@ -173,12 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
         toggleBtn.textContent = collapsed ? "Afficher tout" : "Réduire";
     };
 
-    // Auto-réduction si beaucoup de texte
     if (paragraphs.length > 2) toggleBtn.click();
 });
 </script>
-
-
-</div>
 </body>
 </html>
