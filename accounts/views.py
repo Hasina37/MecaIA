@@ -24,7 +24,7 @@ def home(request):
         other = request.POST.get('otherSymptoms')
 
         if other:
-            # Vérification si le texte libre a un rapport avec la mécanique
+            
             if not is_relevant_to_car(other):
                 return render(request, 'home.html', {
                     "result": {
@@ -36,33 +36,45 @@ def home(request):
                 })
 
             symptoms.append(other.lower())
+        
+        #         if "fumée noire" in symptoms and "consommation élevée" in symptoms:
+        #     diagnosis = "Problème d'injection"
+        #     severity = "Critique"
+        #     cost = "70 000 - 190 000 Ar"
+        #     explanation = get_openrouter_explanation(symptoms)["explanation"]
 
-        # ------- RÈGLES MANUELLES -------
+        # elif "moteur chauffe" in symptoms and "fuite liquide" in symptoms:
+        #     diagnosis = "Radiateur défectueux"
+        #     severity = "Moyen"
+        #     cost = "50 000 - 100 000 Ar"
+        #     explanation = get_openrouter_explanation(symptoms)["explanation"]
+
+        
         if "fumée noire" in symptoms and "consommation élevée" in symptoms:
             diagnosis = "Problème d'injection"
             severity = "Critique"
-            cost = "50 000 - 150 000 Ar"
+            cost = "70 000 - 190 000 Ar"
             explanation = get_openrouter_explanation(symptoms)["explanation"]
 
         elif "moteur chauffe" in symptoms and "fuite liquide" in symptoms:
             diagnosis = "Radiateur défectueux"
             severity = "Moyen"
-            cost = "20 000 - 60 000 Ar"
+            cost = "50 000 - 100 000 Ar"
             explanation = get_openrouter_explanation(symptoms)["explanation"]
 
         elif "démarrage difficile" in symptoms and "batterie faible" in symptoms:
             diagnosis = "Panne batterie"
             severity = "Léger"
-            cost = "10 000 - 20 000 Ar"
+            cost = "80 000 - 220 000 Ar"
             explanation = get_openrouter_explanation(symptoms)["explanation"]
 
         else:
-            # ------- CAS IA COMPLET -------
+            
             ia = get_openrouter_explanation(symptoms)
 
             return render(request, 'home.html', {"result": ia})
 
-        # Résultat pour les cas manuels
+        
         result = {
             "diagnosis": diagnosis,
             "severity": severity,
