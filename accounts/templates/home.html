@@ -83,6 +83,7 @@
 </head>
 <body>
     <div class="container">
+        
         <h1>Assistant Diagnostic Automobile</h1>
 
         <form method="POST">
@@ -123,6 +124,16 @@
         </div>
         {% endif %}
     </div>
+    <div style="text-align:right; margin-bottom:15px;">
+        <form action="{% url 'logout' %}" method="post" style="text-align:right; margin-bottom:15px;">
+            {% csrf_token %}
+            <button type="submit"
+                style="background:#ff4d4d; padding:8px 12px; color:white;
+                       border-radius:6px; border:none; font-weight:bold; cursor:pointer;">
+                Déconnexion
+            </button>
+        </form>
+        
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -166,5 +177,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (paragraphs.length > 2) toggleBtn.click();
 });
 </script>
+
+
+</div>
 </body>
 </html>

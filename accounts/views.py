@@ -2,7 +2,18 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from utils.requestOpenRouter import get_openrouter_explanation
-from django.conf import settings
+
+
+def is_relevant_to_car(text):
+    keywords = [
+        "moteur", "voiture", "pneu", "fumée", "démarrage", "batterie",
+        "frein", "accélération", "carburant", "huile", "radiateur",
+        "embrayage", "transmission", "direction", "vibration",
+        "fuite", "consommation", "klaxon", "échappement"
+    ]
+    text = text.lower()
+    return any(word in text for word in keywords)
+
 
 @login_required
 def home(request):
@@ -11,55 +22,52 @@ def home(request):
     if request.method == "POST":
         symptoms = request.POST.getlist('symptoms')
         other = request.POST.get('otherSymptoms')
+
         if other:
+            # Vérification si le texte libre a un rapport avec la mécanique
+            if not is_relevant_to_car(other):
+                return render(request, 'home.html', {
+                    "result": {
+                        "diagnosis": "Invalide",
+                        "severity": "-",
+                        "cost": "-",
+                        "explanation": "Ce que vous avez saisi n’a aucun rapport avec l’automobile."
+                    }
+                })
+
             symptoms.append(other.lower())
 
-        # Vérifier si les symptômes correspondent aux règles manuelles
+        # ------- RÈGLES MANUELLES -------
         if "fumée noire" in symptoms and "consommation élevée" in symptoms:
             diagnosis = "Problème d'injection"
             severity = "Critique"
             cost = "50 000 - 150 000 Ar"
+            explanation = get_openrouter_explanation(symptoms)["explanation"]
+
         elif "moteur chauffe" in symptoms and "fuite liquide" in symptoms:
             diagnosis = "Radiateur défectueux"
             severity = "Moyen"
             cost = "20 000 - 60 000 Ar"
+            explanation = get_openrouter_explanation(symptoms)["explanation"]
+
         elif "démarrage difficile" in symptoms and "batterie faible" in symptoms:
             diagnosis = "Panne batterie"
             severity = "Léger"
             cost = "10 000 - 20 000 Ar"
+            explanation = get_openrouter_explanation(symptoms)["explanation"]
+
         else:
-            # Ici, l'IA fera le diagnostic complet si aucune règle n'est trouvée
-            # On envoie juste les symptômes, et on laisse l'IA retourner diagnostic, gravité et coût
-            explanation_prompt = f"""
-            Tu es un expert en mécanique automobile.
-            Voici les symptômes observés : {', '.join(symptoms)}.
-            Rédige un diagnostic précis, indique la gravité et fournis un coût estimatif en Ariary.
-            ⚠️ Ta réponse doit être claire et concise, uniquement du texte.
-            """
-            diagnosis = "Diagnostic IA en cours"
-            severity = ""
-            cost = ""
-            # On récupère le texte complet de l'IA
-            explanation = get_openrouter_explanation("A déterminer", "A déterminer", "A déterminer", symptoms)
-            
-            # Ici, si tu veux, tu peux parser le texte de l'IA pour essayer d'extraire
-            # diagnostic, gravité et coût, sinon tu peux juste afficher le texte complet
-            result = {
-                "diagnosis": diagnosis,
-                "severity": severity,
-                "cost": cost,
-                "explanation": explanation
-            }
-            return render(request, 'home.html', {"result": result})
+            # ------- CAS IA COMPLET -------
+            ia = get_openrouter_explanation(symptoms)
 
-        # Si règles manuelles appliquées, on appelle l'IA juste pour l'explication
-        explanation = get_openrouter_explanation(diagnosis, severity, cost, symptoms)
+            return render(request, 'home.html', {"result": ia})
 
+        # Résultat pour les cas manuels
         result = {
             "diagnosis": diagnosis,
             "severity": severity,
             "cost": cost,
-            "explanation": explanation
+            "explanation": explanation,
         }
 
     return render(request, 'home.html', {"result": result})

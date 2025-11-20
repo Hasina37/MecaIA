@@ -1,11 +1,15 @@
-# utils/requestOpenRouter.py
 import requests
-import json
 from django.conf import settings
+import json
 
-def get_openrouter_explanation(diagnosis: str, severity: str, cost: str, symptoms: list) -> str:
+def get_openrouter_explanation(symptoms: list) -> dict:
     """
-    Appelle OpenRouter pour générer une explication textuelle pour le diagnostic automobile.
+    Appelle OpenRouter pour générer :
+    - diagnostic
+    - gravité
+    - coût estimatif
+    - explication
+    Le tout en JSON structuré.
     """
 
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -16,28 +20,34 @@ def get_openrouter_explanation(diagnosis: str, severity: str, cost: str, symptom
 
     prompt = f"""
     Tu es un expert en mécanique automobile.
-    Voici le diagnostic d'un véhicule :
-    - Diagnostic : {diagnosis}
-    - Gravité : {severity}
-    - Coût estimatif : {cost}
-    - Symptômes observés : {', '.join(symptoms)}
-
-    Rédige une explication concise et claire pour un mécanicien ou un utilisateur non expert.
-    ⚠️ Ta réponse doit être uniquement du texte clair (pas de JSON).
+    Symptômes observés : {', '.join(symptoms)}.
+    
+    Analyse la situation et retourne STRICTEMENT un JSON :
+    {{
+      "diagnosis": "...",
+      "severity": "Léger / Moyen / Critique",
+      "cost": "... Ariary",
+      "explanation": "Texte clair"
+    }}
+    Pas d'autres mots, pas de texte autour, uniquement le JSON valide.
     """
 
-    payload = {
+    body = {
         "model": "gpt-4o-mini",
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 500
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=15)
+        response = requests.post(url, headers=headers, json=body, timeout=15)
         response.raise_for_status()
-        data = response.json()
-        explanation = data["choices"][0]["message"]["content"].strip()
-        return explanation
+        content = response.json()["choices"][0]["message"]["content"].strip()
 
-    except requests.exceptions.RequestException as e:
-        return f"Explication indisponible (erreur OpenRouter: {str(e)})"
+        return json.loads(content)
+
+    except Exception as e:
+        return {
+            "diagnosis": "Erreur IA",
+            "severity": "Inconnu",
+            "cost": "Inconnu",
+            "explanation": f"Erreur OpenRouter : {str(e)}",
+        }
