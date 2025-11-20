@@ -127,8 +127,12 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = '/login/'
 
+from pathlib import Path
 import os
+from dotenv import load_dotenv
 
-API_KEY = os.getenv("OPENROUTEUR_KEY")
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-OPENROUTER_API_KEY = API_KEY
+load_dotenv(BASE_DIR / ".env")  # charge les variables du .env
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTEUR_KEY")
